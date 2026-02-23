@@ -1,0 +1,85 @@
+from machine import Pin, PWM
+import neopixel
+import time
+
+start_btn = Pin(4, Pin.IN, Pin.PULL_UP)
+action_btn = Pin(5, Pin.IN, Pin.PULL_UP)
+
+buzz = Pin(27, Pin.OUT)
+wrong_led = Pin(2, Pin.OUT)
+
+np = neopixel.NeoPixel(Pin(13), 16)
+
+servo = PWM(Pin(18))
+servo.freq(50)
+
+safe_min = 80
+safe_max = 100
+
+while True:
+
+    if start_btn.value() == 0:
+
+        wrong_led.off()
+        buzz.off()
+
+        for i in range(16):
+            np[i] = (0,0,0)
+        np.write()
+
+        for led in range(16):
+
+            for duty in range(30,130,12):
+
+                servo.duty(duty)
+
+                if action_btn.value() == 0:
+
+                    if safe_min <= duty <= safe_max:
+
+                        for i in range(16):
+                            np[i] = (0,255,0)
+                        np.write()
+                        buzz.off()
+
+                        time.sleep(5)  
+                        break
+
+                    else:
+                        wrong_led.on()
+                        time.sleep(0.3)
+
+                time.sleep(0.02)
+
+        
+            for duty in range(130,30,-12):
+
+                servo.duty(duty)
+
+                if action_btn.value() == 0:
+
+                    if safe_min <= duty <= safe_max:
+
+                        for i in range(16):
+                            np[i] = (0,255,0)
+                        np.write()
+                        buzz.off()
+
+                        time.sleep(5)
+                        break
+
+                    else:
+                        wrong_led.on()
+                        time.sleep(0.3)
+
+                time.sleep(0.02)
+
+            
+            np[led] = (255,0,0)
+            np.write()
+
+            buzz.on()
+            time.sleep(0.05)
+            buzz.off()
+ 
+        buzz.on()
